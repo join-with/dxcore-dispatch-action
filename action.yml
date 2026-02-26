@@ -1,0 +1,94 @@
+name: "DxCore Dispatch"
+description: "Run a build command and pipe the task graph to the DxCore coordinator for distributed execution"
+
+inputs:
+  coordinator-url:
+    description: "URL of the running DxCore coordinator"
+    required: true
+  token:
+    description: "Authentication token matching the coordinator"
+    required: true
+  command:
+    description: "Build command that outputs a task graph to stdout (e.g. 'turbo run build test lint --dry=json')"
+    required: true
+  session-id:
+    description: "Session identifier. Defaults to gha-<run_id>."
+    required: false
+    default: ""
+  build-system:
+    description: "Build system adapter (turbo or nx)"
+    required: false
+    default: "turbo"
+  work-dir:
+    description: "Working directory where the build command runs"
+    required: false
+    default: "."
+  timeout:
+    description: "Timeout in seconds for the dispatch operation"
+    required: false
+    default: "900"
+  version:
+    description: "Release tag to download (e.g. v0.1.0). Defaults to latest."
+    required: false
+    default: "latest"
+
+branding:
+  icon: "send"
+  color: "orange"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Determine version
+      id: version
+      shell: bash
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          TAG=$(gh release view --repo join-with/dxcore --json tagName -q '.tagName') || { echo "::error::No releases found in join-with/dxcore"; exit 1; }
+        else
+          TAG="${{ inputs.version }}"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Download CLI binary
+      shell: bash
+      run: |
+        gh release download "${{ steps.version.outputs.tag }}" \
+          --repo join-with/dxcore \
+          --pattern "dxcore-agents-cli-linux-x86_64" \
+          --output dxcore-cli
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Make binary executable
+      shell: bash
+      run: chmod +x dxcore-cli
+
+    - name: Resolve session ID
+      id: defaults
+      shell: bash
+      run: |
+        SESSION_ID="${{ inputs.session-id }}"
+        if [ -z "$SESSION_ID" ]; then
+          SESSION_ID="gha-${{ github.run_id }}"
+        fi
+        echo "session_id=$SESSION_ID" >> "$GITHUB_OUTPUT"
+
+    - name: Wait for coordinator
+      shell: bash
+      run: ./dxcore-cli ci wait --coordinator="${{ inputs.coordinator-url }}"
+
+    - name: Dispatch tasks
+      shell: bash
+      run: |
+        set -o pipefail
+        cd "${{ inputs.work-dir }}" && \
+        ${{ inputs.command }} | \
+          $GITHUB_WORKSPACE/dxcore-cli dispatch \
+            --coordinator="${{ inputs.coordinator-url }}" \
+            --session-id=${{ steps.defaults.outputs.session_id }} \
+            --token=${{ inputs.token }} \
+            --build-system=${{ inputs.build-system }} \
+            --timeout=${{ inputs.timeout }}
