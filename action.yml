@@ -27,6 +27,10 @@ inputs:
     description: "Timeout in seconds for the dispatch operation"
     required: false
     default: "900"
+  failure-strategy:
+    description: "Failure strategy (fail-fast or continue-all). Omit to use org default."
+    required: false
+    default: ""
   version:
     description: "Release tag to download (e.g. v0.1.0). Defaults to latest."
     required: false
@@ -82,8 +86,14 @@ runs:
 
     - name: Dispatch tasks
       shell: bash
+      env:
+        FAILURE_STRATEGY: ${{ inputs.failure-strategy }}
       run: |
         set -o pipefail
+        FAILURE_STRATEGY_FLAG=""
+        if [ -n "$FAILURE_STRATEGY" ]; then
+          FAILURE_STRATEGY_FLAG="--failure-strategy=$FAILURE_STRATEGY"
+        fi
         cd "${{ inputs.work-dir }}" && \
         ${{ inputs.command }} | \
           $GITHUB_WORKSPACE/dxcore-cli dispatch \
@@ -91,4 +101,5 @@ runs:
             --session-id=${{ steps.defaults.outputs.session_id }} \
             --token=${{ inputs.token }} \
             --build-system=${{ inputs.build-system }} \
-            --timeout=${{ inputs.timeout }}
+            --timeout=${{ inputs.timeout }} \
+            $FAILURE_STRATEGY_FLAG
