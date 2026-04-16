@@ -45,3 +45,7 @@ jobs:
 - [join-with/dxcore-coordinator-action](https://github.com/join-with/dxcore-coordinator-action) -- Start coordinator
 - [join-with/dxcore-agent-action](https://github.com/join-with/dxcore-agent-action) -- Connect build agents
 - [join-with/dxcore-shutdown-action](https://github.com/join-with/dxcore-shutdown-action) -- Shutdown coordinator
+
+## Disclaimer
+
+DxCore is an independent product by [JoinWith](https://joinwith.com) and is not affiliated with, endorsed by, or sponsored by Vercel, Nrwl, Gradle, Docker, GitHub, or any other third-party project. All trademarks belong to their respective owners.
