@@ -61,7 +61,7 @@ runs:
       run: |
         gh release download "${{ steps.version.outputs.tag }}" \
           --repo join-with/dxcore \
-          --pattern "dxcore-agents-cli-linux-x86_64" \
+          --pattern "dxcore_agents_cli_linux_x86_64" \
           --output dxcore-cli
       env:
         GH_TOKEN: ${{ github.token }}
