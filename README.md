@@ -48,4 +48,4 @@ jobs:
 
 ## Disclaimer
 
-DxCore is an independent product by [JoinWith](https://joinwith.com) and is not affiliated with, endorsed by, or sponsored by Vercel, Nrwl, Gradle, Docker, GitHub, or any other third-party project. All trademarks belong to their respective owners.
+DxCore is an independent project by Eyal Lapid ([JoinWith])(https://joinwith.com) and is not affiliated with, endorsed by, or sponsored by Vercel, Nrwl, Gradle, Docker, GitHub, or any other third-party project. All trademarks belong to their respective owners.
