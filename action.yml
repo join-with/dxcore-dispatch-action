@@ -76,7 +76,7 @@ runs:
       run: |
         SESSION_ID="${{ inputs.session-id }}"
         if [ -z "$SESSION_ID" ]; then
-          SESSION_ID="gha-${{ github.run_id }}"
+          SESSION_ID="gha-${{ github.run_id }}-${{ github.run_attempt }}"
         fi
         echo "session_id=$SESSION_ID" >> "$GITHUB_OUTPUT"
 
